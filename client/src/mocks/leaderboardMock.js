@@ -1,10 +1,17 @@
-const leaderboardMock = Array.from({ length: 15 }, (_, i) => ({
-  _id: `user_${i + 1}`,
-  rank: i + 1,
-  name: ['Aarav Singh','Priya Sharma','Rohan Mehta','Sneha Patel','Karan Joshi','Divya Nair','Arjun Verma','Pooja Rao','Rahul Das','Ananya Gupta','Vikas Kumar','Neha Mishra','Siddharth Jain','Riya Chopra','Manish Tyagi'][i],
-  totalPoints: [2450,2200,1980,1750,1600,1450,1300,1150,1000,900,780,650,520,400,280][i],
-  badgesCount: [6,5,5,4,4,3,3,3,2,2,2,1,1,1,0][i],
-  weeklyChange: ['+3','+1','=','-1','+2','=','+1','-2','=','+1','-1','=','+2','-1','='][i],
-}))
-
-export default leaderboardMock
+export const leaderboardMock = [
+  { id: 'u1', name: 'Aarav', subject: 'Math', weeklyPoints: 980, monthlyPoints: 3620, allTimePoints: 14120, weeklyChange: 2, badges: ['Streak'], previousRank: 3 },
+  { id: 'u2', name: 'Sara', subject: 'Science', weeklyPoints: 1010, monthlyPoints: 3460, allTimePoints: 13950, weeklyChange: -1, badges: ['Top 1%'], previousRank: 1 },
+  { id: 'u3', name: 'Rehan', subject: 'Math', weeklyPoints: 920, monthlyPoints: 3310, allTimePoints: 12420, weeklyChange: 0, badges: ['Rapid'], previousRank: 4 },
+  { id: 'u4', name: 'Ishita', subject: 'Science', weeklyPoints: 875, monthlyPoints: 3070, allTimePoints: 11980, weeklyChange: 1, badges: ['Consistent'], previousRank: 6 },
+  { id: 'u5', name: 'Kabir', subject: 'History', weeklyPoints: 830, monthlyPoints: 2920, allTimePoints: 11220, weeklyChange: -2, badges: ['Veteran'], previousRank: 5 },
+  { id: 'u6', name: 'Meera', subject: 'Physics', weeklyPoints: 812, monthlyPoints: 2860, allTimePoints: 10940, weeklyChange: 1, badges: ['Sharp'], previousRank: 8 },
+  { id: 'u7', name: 'Anya', subject: 'Math', weeklyPoints: 780, monthlyPoints: 2780, allTimePoints: 10290, weeklyChange: -1, badges: ['Focus'], previousRank: 7 },
+  { id: 'u8', name: 'Dev', subject: 'Science', weeklyPoints: 760, monthlyPoints: 2640, allTimePoints: 9980, weeklyChange: 0, badges: ['Steady'], previousRank: 9 },
+  { id: 'u9', name: 'You', subject: 'Math', weeklyPoints: 790, monthlyPoints: 2810, allTimePoints: 10440, weeklyChange: 2, badges: ['AI Boost'], previousRank: 12 },
+  { id: 'u10', name: 'Naina', subject: 'History', weeklyPoints: 742, monthlyPoints: 2570, allTimePoints: 9760, weeklyChange: -1, badges: ['Reader'], previousRank: 10 },
+  { id: 'u11', name: 'Yash', subject: 'Physics', weeklyPoints: 718, monthlyPoints: 2480, allTimePoints: 9340, weeklyChange: 1, badges: ['Comeback'], previousRank: 13 },
+  { id: 'u12', name: 'Ria', subject: 'Science', weeklyPoints: 695, monthlyPoints: 2370, allTimePoints: 9010, weeklyChange: 0, badges: ['Calm'], previousRank: 11 },
+  { id: 'u13', name: 'Arjun', subject: 'Math', weeklyPoints: 688, monthlyPoints: 2300, allTimePoints: 8880, weeklyChange: -1, badges: ['Builder'], previousRank: 12 },
+  { id: 'u14', name: 'Tara', subject: 'History', weeklyPoints: 670, monthlyPoints: 2240, allTimePoints: 8640, weeklyChange: 1, badges: ['Clutch'], previousRank: 15 },
+  { id: 'u15', name: 'Vik', subject: 'Physics', weeklyPoints: 651, monthlyPoints: 2160, allTimePoints: 8210, weeklyChange: 0, badges: ['Learner'], previousRank: 14 },
+]

@@ -1,0 +1,11 @@
+{
+  "name": "educational-gamification-app",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "postinstall": "npm --prefix client ci || npm --prefix client install",
+    "dev": "npm --prefix client run dev",
+    "build": "npm --prefix client run build",
+    "preview": "npm --prefix client run preview"
+  }
+}

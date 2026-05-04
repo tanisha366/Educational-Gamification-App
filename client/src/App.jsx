@@ -50,12 +50,12 @@ function AnimatedRoutes() {
         <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
         <Route path="/login" element={<PageTransition><LoginPage /></PageTransition>} />
         <Route path="/register" element={<PageTransition><RegisterPage /></PageTransition>} />
+        <Route path="/badges" element={<PageTransition><BadgesPage /></PageTransition>} />
 
         {/* Protected */}
         <Route path="/dashboard" element={<ProtectedRoute><PageTransition><DashboardPage /></PageTransition></ProtectedRoute>} />
         <Route path="/quiz" element={<ProtectedRoute><PageTransition><QuizListPage /></PageTransition></ProtectedRoute>} />
         <Route path="/quiz/:id" element={<ProtectedRoute><PageTransition><QuizPage /></PageTransition></ProtectedRoute>} />
-        <Route path="/badges" element={<ProtectedRoute><PageTransition><BadgesPage /></PageTransition></ProtectedRoute>} />
         <Route path="/leaderboard" element={<ProtectedRoute><PageTransition><LeaderboardPage /></PageTransition></ProtectedRoute>} />
         <Route path="/playground" element={<ProtectedRoute><PageTransition><Playground /></PageTransition></ProtectedRoute>} />
 
