@@ -1,70 +1,35 @@
-# Educational Gamification App
+# Dynamic Gamification — MERN Stack
 
-Minimal local README for the Dynamic Gamification project. Contains run instructions for the server and client and a short API pointer.
+An educational web application where students take quizzes, earn XP, unlock badges, compete on a leaderboard, and get AI-powered recommendations.
 
-## Project structure
+## Team
+- **Kritika** — Team Lead + Frontend Architect
+- **Archana** — Backend Engineer
+- **Nimrit** — Quiz Frontend Developer
+- **Tanisha** — Rewards & Badges Frontend
+- **Harshdeep** — AI Features + Leaderboard Frontend
 
-- `client/` - React + Vite front-end
-- `server/` - Express + MongoDB back-end
+## Tech Stack
+- **Frontend:** React 18 + Vite (Vercel)
+- **Backend:** Node.js + Express.js (Render)
+- **Database:** MongoDB Atlas
+- **AI:** Anthropic Claude API
+- **Animations:** Framer Motion, canvas-confetti
 
-## Requirements
-
-- Node.js >= 18
-- npm
-- MongoDB (local or remote URI via `MONGODB_URI`)
-
-## Quick start (local)
-
-1. Install root + client deps (root uses npm scripts to forward to client):
-
+## Setup
 ```bash
-cd /path/to/dynamic-gamification-mern
-npm install
-```
+# Clone repo
+git clone https://github.com/your-org/dynamic-gamification-mern.git
 
-2. Start the client (Vite):
-
-```bash
+# Frontend
 cd client
 npm install
-npm run dev
-```
+cp .env.example .env        # set VITE_API_URL
+npm run dev                  # http://localhost:5173
 
-3. Start the server:
-
-```bash
+# Backend
 cd server
-# set env vars, e.g. MONGODB_URI and JWT_SECRET
 npm install
-npm run dev
+# fill in .env (see backend team)
+npm run dev                  # http://localhost:5000
 ```
-
-The client will default to Vite's port (5173) and the server to port 5000 (see `server/server.js`).
-
-## API Reference
-
-See `server/API_DOCS.md` for detailed API endpoints, request/response formats, and authentication requirements.
-
-## Pushing changes
-
-To push to GitHub (HTTPS):
-
-```bash
-git remote add origin https://github.com/<user>/Educational-Gamification-App.git
-git branch -M main
-git push -u origin main
-```
-
-Or using SSH:
-
-```bash
-git remote add origin git@github.com:<user>/Educational-Gamification-App.git
-git push -u origin main
-```
-
-Replace `<user>` with your GitHub username or the target owner.
-
-## Notes
-
-- For protected branches or CI, avoid force-pushing.
-- If you want me to push from this environment, provide GitHub auth (SSH key or gh auth) and I can run the push.

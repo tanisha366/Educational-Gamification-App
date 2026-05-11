@@ -38,7 +38,7 @@ function LockedTooltip({ badge, visible }) {
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
               <span style={{ color: "#9ca3af", fontSize: 10, fontFamily: "'DM Mono',monospace" }}>Progress</span>
               <span style={{ color: r.strokeHex, fontSize: 10, fontFamily: "'DM Mono',monospace", fontWeight: 700 }}>
-                {badge.progress}/{badge.total}
+              {badge.progress || 0}/{badge.total || 1}
               </span>
             </div>
             <div style={{ height: 3, background: "rgba(0,0,0,0.07)", borderRadius: 999, overflow: "hidden" }}>
@@ -64,7 +64,7 @@ export default function BadgeCard({ badge, onSelect }) {
   const ref = useRef(null);
 
   const r           = RARITY[badge.rarity] ?? RARITY.common;
-  const hasProgress = !badge.earned && badge.progress > 0 && badge.progress < badge.total;
+  const hasProgress = !badge.earned && badge.progress > 0 && badge.total > 0;
   const pct         = hasProgress ? Math.min(100, Math.round((badge.progress / badge.total) * 100)) : 0;
 
   const onMove = e => {
@@ -227,7 +227,7 @@ export default function BadgeCard({ badge, onSelect }) {
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6C63FF" strokeWidth="2.5" strokeLinecap="round">
                 <circle cx="12" cy="12" r="10" /><polyline points="12,6 12,12 16,14" />
               </svg>
-              Earned on {fmtDate(badge.earnedOn)}
+              Earned on {fmtDate(badge.earnedAt)}
             </div>
           ) : (
             <div style={{
@@ -237,7 +237,7 @@ export default function BadgeCard({ badge, onSelect }) {
               <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
-              Complete {badge.unlockCondition} to unlock
+              {badge.description || "Locked"}
             </div>
           )}
         </div>
@@ -278,7 +278,7 @@ export default function BadgeCard({ badge, onSelect }) {
               <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
             </svg>
             <span style={{ color: r.strokeHex, fontSize: 12, fontWeight: 800, fontFamily: "'DM Mono',monospace" }}>
-              +{badge.xpReward} XP
+              +{badge.xpReward || 0} XP
             </span>
           </div>
           <span style={{ color: "#d1d5db", fontSize: 10, fontFamily: "'DM Mono',monospace", textTransform: "uppercase", letterSpacing: "0.06em" }}>

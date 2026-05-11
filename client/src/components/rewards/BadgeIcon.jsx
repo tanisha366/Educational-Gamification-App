@@ -88,14 +88,14 @@ export default function BadgeIcon({ badge, size = "md", earned = true, animated 
           }}
         >
           <defs>
-            <linearGradient id={`hg_${badge?.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id={`hg_${badge?._id || badge?.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor={strokeHex} stopOpacity="0.22"/>
               <stop offset="100%" stopColor={strokeHex} stopOpacity="0.04"/>
             </linearGradient>
           </defs>
 
           {/* Hex fill */}
-          <path d="M12 2 L22 7 L22 17 L12 22 L2 17 L2 7 Z" fill={earned?`url(#hg_${badge?.id})`:"rgba(255,255,255,0.03)"} stroke="none"/>
+          <path d="M12 2 L22 7 L22 17 L12 22 L2 17 L2 7 Z" fill={earned?`url(#hg_${badge?._id || badge?.id})`:"rgba(255,255,255,0.03)"} stroke="none"/>
 
           {/* Top shine */}
           <path d="M4.5 7.8 Q12 4.5 19.5 7.8" fill="rgba(255,255,255,0.06)" stroke="none"/>
@@ -116,7 +116,7 @@ export default function BadgeIcon({ badge, size = "md", earned = true, animated 
 
         {/* Inner icon, centered */}
         <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",paddingTop:px*.04}}>
-          <InnerIcon name={badge?.icon||"star"} color={earned?strokeHex:"#3D3D5C"} size={px}/>
+          <InnerIcon name={badge?.iconName||"star"} color={earned?strokeHex:"#3D3D5C"} size={px}/>
         </div>
 
         {/* Shimmer sweep on hover */}

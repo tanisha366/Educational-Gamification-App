@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import confetti from 'canvas-confetti'
 import { AnimatePresence } from 'framer-motion'
-import { leaderboardMock } from '../mocks/leaderboardMock'
+import api from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import PodiumDisplay from '../components/leaderboard/PodiumDisplay'
 import RankRow from '../components/leaderboard/RankRow'
@@ -25,16 +25,14 @@ function selectPointsByRange(user, timeRange) {
 }
 
 function findCurrentUser(preparedEntries, authUser) {
-  if (!authUser) {
-    return preparedEntries.find((entry) => entry.name === 'You') ?? null
-  }
+  if (!authUser) return null
 
   const authId = authUser.id ?? authUser._id
 
   return (
-    preparedEntries.find((entry) => authId != null && entry.id === authId)
+    preparedEntries.find((entry) => entry.isCurrentUser === true)
+    ?? preparedEntries.find((entry) => authId != null && entry._id === authId)
     ?? preparedEntries.find((entry) => entry.name.toLowerCase() === authUser.name?.toLowerCase())
-    ?? preparedEntries.find((entry) => entry.name === 'You')
     ?? null
   )
 }
@@ -50,9 +48,36 @@ function fireConfetti() {
 function LeaderboardPage() {
   const { user } = useAuth()
   const [subject, setSubject] = useState('All')
-  const [timeRange, setTimeRange] = useState('weekly')
+  const [timeRange, setTimeRange] = useState('all-time')
   const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [leaderboardData, setLeaderboardData] = useState([])
+  const [loading, setLoading] = useState(true)
   const hasFiredRef = useRef(false)
+
+  const fetchLeaderboard = useCallback(async () => {
+    setLoading(true)
+    try {
+      const params = {
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+      }
+      if (subject !== 'All') params.subject = subject
+      if (timeRange !== 'all-time') params.period = timeRange
+
+      const { data } = await api.get('/api/leaderboard', { params })
+      setLeaderboardData(data.data || [])
+      setTotalPages(data.totalPages || 1)
+    } catch (error) {
+      console.error('Failed to fetch leaderboard:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [currentPage, subject, timeRange])
+
+  useEffect(() => {
+    fetchLeaderboard()
+  }, [fetchLeaderboard])
 
   const handleSubjectChange = (value) => {
     setSubject(value)
@@ -67,38 +92,27 @@ function LeaderboardPage() {
   }
 
   const prepared = useMemo(() => {
-    const filtered = leaderboardMock.filter((entry) => {
-      if (subject === 'All') return true
-      return entry.subject === subject
-    })
+    return leaderboardData.map((entry) => ({
+      ...entry,
+      id: entry._id || entry.id,
+      points: entry.totalPoints ?? 0,
+      initials: toInitials(entry.name),
+    }))
+  }, [leaderboardData])
 
-    const sorted = [...filtered]
-      .sort((a, b) => selectPointsByRange(b, timeRange) - selectPointsByRange(a, timeRange))
-      .map((entry, index) => ({
-        ...entry,
-        rank: index + 1,
-        points: selectPointsByRange(entry, timeRange),
-        initials: toInitials(entry.name),
-      }))
+  const topThree = useMemo(() => {
+    if (currentPage === 1) return prepared.slice(0, 3)
+    return []
+  }, [prepared, currentPage])
 
-    return sorted
-  }, [subject, timeRange])
-
-  const totalPages = Math.ceil(prepared.length / ITEMS_PER_PAGE)
-  const pagedRows = prepared.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
-  )
-  const topThree = prepared.slice(0, 3)
-
-  const currentUser = findCurrentUser(prepared, user)
+  const currentUser = useMemo(() => findCurrentUser(prepared, user), [prepared, user])
 
   useEffect(() => {
-    if (!currentUser || hasFiredRef.current) {
-      return
-    }
+    if (!currentUser || hasFiredRef.current) return
 
-    if (currentUser.rank < currentUser.previousRank) {
+    // Previous rank is not always available from backend, so we might need to skip this
+    // or handle it if the backend provides it.
+    if (currentUser.rank < (currentUser.previousRank || 100)) {
       fireConfetti()
       hasFiredRef.current = true
     }
@@ -118,14 +132,21 @@ function LeaderboardPage() {
         onTimeRangeChange={handleTimeRangeChange}
       />
 
-      <PodiumDisplay topThree={topThree} />
+      {currentPage === 1 && topThree.length > 0 && <PodiumDisplay topThree={topThree} />}
 
       <section className="rank-list" aria-label="Leaderboard rank rows">
-        <AnimatePresence>
-          {pagedRows.map((entry) => (
-            <RankRow key={entry.id} user={entry} />
-          ))}
-        </AnimatePresence>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Loading leaderboard...</div>
+        ) : (
+          <AnimatePresence>
+            {prepared.map((entry) => (
+              <RankRow key={entry.id} user={entry} />
+            ))}
+          </AnimatePresence>
+        )}
+        {!loading && prepared.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No entries found for this category.</div>
+        )}
       </section>
 
       <section className="pagination" aria-label="Leaderboard pagination">

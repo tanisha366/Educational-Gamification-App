@@ -1,10 +1,10 @@
 import axios from 'axios'
 import { mockRegister, mockLogin, mockGetUserStats } from '../mocks/authMock'
 
-const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true' || !import.meta.env.VITE_API_URL
+const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
+  baseURL: import.meta.env.VITE_API_URL || '',
 })
 
 // Attach JWT token automatically

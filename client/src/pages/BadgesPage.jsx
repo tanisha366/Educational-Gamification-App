@@ -1,12 +1,13 @@
-// src/pages/BadgesPage.jsx
-import { useState, useMemo, useEffect, useRef } from "react";
-import { badges, MOCK_USER, RARITY } from "../mocks/badgeMock";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import api from "../utils/api";
+import { RARITY } from "../mocks/badgeMock";
 import BadgeCard from "../components/rewards/BadgeCard";
 import BadgeUnlockModal from "../components/rewards/BadgeUnlockModal";
 import XPBar from "../components/rewards/XPBar";
 import StreakTracker from "../components/rewards/StreakTracker";
 import { ToastContainer } from "../components/rewards/Toast";
 import { ToastProvider, useToast } from "../context/ToastContext";
+import { useAuth } from "../context/AuthContext";
 
 /* ════════════════ ANIMATED BACKGROUND CANVAS ════════════════ */
 function MysticBG() {
@@ -142,14 +143,25 @@ function Cycle({ words }) {
 
 /* ════════ NEXT BADGE PROGRESS SECTION ════════ */
 function NextBadgeSection({ badges }) {
-  const next = badges
-    .filter(b => !b.earned && b.total > 0)
-    .map(b => ({ ...b, pct: b.progress / b.total }))
-    .sort((a, b) => b.pct - a.pct)[0];
+  const next = useMemo(() => {
+    if (!badges || !Array.isArray(badges)) return null;
+    return badges
+      .filter(b => !b.earned)
+      .map(b => {
+        // Calculate progress based on requirement if present
+        const current = b.progress ?? 0;
+        const total = b.requirement?.value ?? 1;
+        return { ...b, progress: current, total, pct: current / total };
+      })
+      .sort((a, b) => b.pct - a.pct)[0];
+  }, [badges]);
+
   if (!next) return null;
 
   const r   = RARITY[next.rarity] ?? RARITY.common;
-  const pct = Math.min(100, Math.round((next.progress / next.total) * 100));
+  const currentProgress = next.progress ?? 0;
+  const totalNeeded = next.requirement?.value ?? 1;
+  const pct = Math.min(100, Math.round((currentProgress / totalNeeded) * 100));
 
   return (
     <div
@@ -193,10 +205,10 @@ function NextBadgeSection({ badges }) {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
             <div>
               <div style={{ color: "#1e1b4b", fontSize: 15, fontWeight: 800, fontFamily: "'DM Sans',sans-serif" }}>{next.name}</div>
-              <div style={{ color: "#9ca3af", fontSize: 12, fontFamily: "'DM Sans',sans-serif" }}>{next.unlockCondition}</div>
+              <div style={{ color: "#9ca3af", fontSize: 12, fontFamily: "'DM Sans',sans-serif" }}>{next.description}</div>
             </div>
             <span style={{ color: r.strokeHex, fontSize: 14, fontWeight: 900, fontFamily: "'DM Mono',monospace" }}>
-              {next.progress}/{next.total}
+              {currentProgress}/{totalNeeded}
             </span>
           </div>
           <div style={{ height: 7, background: "rgba(0,0,0,0.07)", borderRadius: 999, overflow: "hidden", border: "1px solid rgba(0,0,0,0.04)" }}>
@@ -219,12 +231,37 @@ function NextBadgeSection({ badges }) {
 
 /* ════════════════════════════ MAIN PAGE ════════════════════════════ */
 function Inner() {
+  const { user } = useAuth();
   const { showToast } = useToast();
+  const [badges, setBadges] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [tab,      setTab]      = useState("all");
   const [simBadge, setSimBadge] = useState(null);
   const [selBadge, setSelBadge] = useState(null);
   const [pageIn,   setPageIn]   = useState(false);
-  useEffect(() => { setTimeout(() => setPageIn(true), 80); }, []);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [badgesRes, statsRes] = await Promise.all([
+        api.get('/api/badges'),
+        api.get('/api/users/me/stats')
+      ]);
+      setBadges(badgesRes.data.data);
+      setStats(statsRes.data.data);
+    } catch (error) {
+      console.error("Failed to fetch badges or stats:", error);
+      showToast("Failed to load rewards data", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [showToast]);
+
+  useEffect(() => { 
+    fetchData();
+    setTimeout(() => setPageIn(true), 80); 
+  }, [fetchData]);
 
   useEffect(() => {
     const h = e => setSimBadge(e.detail);
@@ -242,16 +279,20 @@ function Inner() {
     tab === "earned" ? badges.filter(b => b.earned) :
     tab === "locked" ? badges.filter(b => !b.earned) :
     badges,
-  [tab]);
+  [tab, badges]);
 
   const handleSim = () => {
     const locked = badges.filter(b => !b.earned);
-    setSimBadge(locked[Math.floor(Math.random() * locked.length)] || badges[0]);
+    if (locked.length > 0) {
+      setSimBadge(locked[Math.floor(Math.random() * locked.length)]);
+    } else {
+      showToast("All badges earned!", "info");
+    }
   };
   const testToasts = () => {
     showToast("Quiz saved successfully!", "success");
     setTimeout(() => showToast("Points earned", "points", { points: 75 }), 600);
-    setTimeout(() => showToast("New streak:", "streak", { streak: MOCK_USER.streakDays }), 1200);
+    setTimeout(() => showToast("New streak:", "streak", { streak: stats?.currentStreak || 0 }), 1200);
     setTimeout(() => showToast("Badge Unlocked! Quiz Master", "badge"), 1800);
   };
 
@@ -476,7 +517,7 @@ function Inner() {
               <div className="hero-side" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 12, animation: "fadeUp .6s ease .4s both" }}>
                 <div style={{ background: "rgba(108,99,255,0.06)", backdropFilter: "blur(20px)", border: "1px solid rgba(108,99,255,0.15)", borderRadius: 16, padding: "14px 22px", textAlign: "right", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
                   <div style={{ color: "#D97706", fontSize: 30, fontWeight: 900, fontFamily: "'IBM Plex Mono',monospace", letterSpacing: "-0.04em", lineHeight: 1, textShadow: "0 1px 2px rgba(217,119,6,0.1)" }}>
-                    <CountUp to={MOCK_USER.totalPoints} dur={1400} />
+                    <CountUp to={stats?.totalPoints || user?.totalPoints || 0} dur={1400} />
                   </div>
                   <div style={{ color: "#6b7280", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.12em", fontFamily: "'IBM Plex Mono',monospace" }}>Total XP</div>
                 </div>
@@ -500,8 +541,8 @@ function Inner() {
               {[
                 { label: "Earned",   value: earnedCount,               color: "#16a34a", delay: 0   },
                 { label: "Locked",   value: badges.length - earnedCount, color: "#6C63FF", delay: 80  },
-                { label: "Streak",   value: MOCK_USER.streakDays,      color: "#ea580c", delay: 160 },
-                { label: "Total XP", value: MOCK_USER.totalPoints,     color: "#b45309", delay: 240 },
+                { label: "Streak",   value: stats?.currentStreak || 0,      color: "#ea580c", delay: 160 },
+                { label: "Total XP", value: stats?.totalPoints || 0,     color: "#b45309", delay: 240 },
               ].map(s => (
                 <div key={s.label} className="stat-item"
                   style={{ background: "rgba(255,255,255,0.6)", backdropFilter: "blur(16px)", border: `1px solid ${s.color}18`, borderRadius: 16, padding: "18px 20px", boxShadow: `0 2px 8px rgba(0,0,0,0.05),0 0 1px ${s.color}10`, animation: `statIn .6s cubic-bezier(0.34,1.56,0.64,1) ${s.delay}ms both` }}>
@@ -533,8 +574,8 @@ function Inner() {
             <div className="sline" />
           </div>
           <div className="progress-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, animation: "sIn .6s ease .1s both" }}>
-            <XPBar totalPoints={MOCK_USER.totalPoints} />
-            <StreakTracker streakDays={MOCK_USER.streakDays} />
+            <XPBar totalPoints={stats?.totalPoints || 0} />
+            <StreakTracker streakDays={stats?.currentStreak || 0} />
           </div>
 
           {/* Next Badge */}
